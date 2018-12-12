@@ -8,41 +8,38 @@ fn main() {
 }
 
 fn part_one(input: &str) -> i32 {
-    let mut exactly_two_double_matches = 0;
-    let mut exactly_three_matches = 0;
+    let mut doubles = 0;
+    let mut triples = 0;
 
     for line in input.lines() {
-        let mut letter_map: HashMap<&char, usize> = HashMap::new();
+        let mut letter_map: HashMap<char, usize> = HashMap::new();
+        let mut line_doubles = false;
+        let mut line_triples = false;
 
         for character in line.chars() {
             if letter_map.contains_key(&character) {
-                if *letter_map.get(&character).unwrap() == 3 {
-                    // dont need four matches
-                    continue;
+                let count = letter_map.get(&character).unwrap() + 1;
+                if !line_doubles && count == 2 {
+                    line_doubles = true;
+                } else if !line_triples && count == 3 {
+                    line_triples = true;
                 }
-                *letter_map.get_mut(&character).unwrap() += 1;
+                if line_doubles && line_triples {
+                    break;
+                }
+                *letter_map.get_mut(&character).unwrap() = count;
+            } else {
+                letter_map.insert(character.clone(), 1);
             }
         }
 
-        let mut double_matches = 0;
-        let mut triple_matches = 0;
-        letter_map
-            .values()
-            .filter(|value| **value >= 2)
-            .for_each(|value| {
-                if *value == 2 {
-                    double_matches += 1;
-                } else if *value == 3 {
-                    triple_matches += 1;
-                }
-            });
-        if double_matches == 2 {
-            exactly_two_double_matches += 1;
+        if line_doubles {
+            doubles += 1;
         }
-        if triple_matches == 1 {
-            exactly_three_matches += 1;
+        if line_triples {
+            triples += 1;
         }
     }
 
-    exactly_two_double_matches * exactly_three_matches
+    doubles * triples
 }
