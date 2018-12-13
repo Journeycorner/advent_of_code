@@ -5,6 +5,7 @@ fn main() {
     let input = fs::read_to_string("input.txt").unwrap();
 
     println!("The result of part one is {}.", part_one(&input));
+    println!("The result of part two is {}.", part_two(&input));
 }
 
 fn part_one(input: &str) -> i32 {
@@ -42,4 +43,39 @@ fn part_one(input: &str) -> i32 {
     }
 
     doubles * triples
+}
+
+fn part_two(input: &str) -> String {
+    // match every line with each other (inluding itself)
+    for a in input.lines() {
+        for b in input.lines() {
+            let mut result: Vec<char> = Vec::with_capacity(b.len() - 1);
+            let mut mismatch = 0;
+            let mut a_iterator = a.chars();
+            let mut b_iterator = b.chars();
+            loop {
+                let x = a_iterator.next();
+                if x.is_none() {
+                    // eol
+                    break;
+                }
+                let x = x.unwrap();
+                let y = b_iterator.next().unwrap();
+
+                if x != y {
+                    if mismatch == 1 {
+                        break;
+                    }
+                    mismatch += 1;
+                    continue;
+                }
+                result.push(y);
+            }
+            if result.len() == b.len() - 1 {
+                // result has correct length - success!
+                return result.iter().collect();
+            }
+        }
+    }
+    String::new()
 }
