@@ -6,52 +6,70 @@ const MAX_FIELD_SIZE: i32 = 1000;
 fn main() {
     let input = fs::read_to_string("input.txt").unwrap();
 
-    println!("The result of part one is {}.", part_one(&input));
+    let solutions = run(&input);
+    println!("The result of part one is {}.", solutions.0);
+    println!("The result of part two is {}.", solutions.1);
 }
 
-fn part_one(input: &str) -> usize {
+fn run(input: &str) -> (usize, String) {
+    let mut non_overlapping_id = String::new();
     let mut field: HashMap<i32, i8> = HashMap::new();
-
-    input.lines().map(|line| parse(line)).for_each(|claim| {
-        for j in claim.y..(claim.y + claim.tall) {
-            for i in claim.x..(claim.x + claim.wide) {
-                let index = j * MAX_FIELD_SIZE + i;
-                let item = field.get_mut(&index);
-                if item.is_none() {
-                    field.insert(index, 1);
-                } else {
-                    *item.unwrap() += 1;
-                }
+    let claims = input.lines().map(|line| parse(line));
+    for claim in claims.clone() {
+        for index in claim.range {
+            let item = field.get_mut(&index);
+            if item.is_none() {
+                field.insert(index, 1);
+            } else {
+                *item.unwrap() += 1;
             }
         }
-    });
+    }
 
-    field
-        .iter()
-        .map(|(_, value)| value)
-        .filter(|value| **value >= 2)
-        .count()
+    for claim in claims {
+        if claim.range.iter().any(|i| *field.get(i).unwrap() > 1) {
+            continue;
+        }
+        non_overlapping_id = claim.id;
+    }
+
+    (
+        field.iter().filter(|(_, value)| **value >= 2).count(),
+        non_overlapping_id,
+    )
 }
 
 fn parse(line: &str) -> Claim {
-    let mut iter = line.split_whitespace().skip(2);
+    let mut iter = line.split_whitespace();
+    // id
+    let id = iter.next().unwrap().to_string().replace("#", "");
+    let mut iter = iter.skip(1);
 
     let x_y_iter = iter.next().unwrap().replace(":", "");
     let mut x_y_iter = x_y_iter.split(",");
-    let x = x_y_iter.next().unwrap().parse().unwrap();
-    let y = x_y_iter.next().unwrap().parse().unwrap();
+    // x
+    let x: i32 = x_y_iter.next().unwrap().parse().unwrap();
+    // y
+    let y: i32 = x_y_iter.next().unwrap().parse().unwrap();
 
     let iter_rect = iter.next().unwrap();
     let mut iter_rect = iter_rect.split("x");
-    let wide = iter_rect.next().unwrap().parse().unwrap();
-    let tall = iter_rect.next().unwrap().parse().unwrap();
+    // wide
+    let wide: i32 = iter_rect.next().unwrap().parse().unwrap();
+    // tall
+    let tall: i32 = iter_rect.next().unwrap().parse().unwrap();
 
-    Claim { x, y, wide, tall }
+    let mut range = Vec::new();
+    for j in y..(y + tall) {
+        for i in x..(x + wide) {
+            let index = j * MAX_FIELD_SIZE + i;
+            range.push(index);
+        }
+    }
+    Claim { id, range }
 }
 
 struct Claim {
-    x: i32,
-    y: i32,
-    wide: i32,
-    tall: i32,
+    id: String,
+    range: Vec<i32>,
 }
