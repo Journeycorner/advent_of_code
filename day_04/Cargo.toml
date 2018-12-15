@@ -1,0 +1,10 @@
+[package]
+name = "day_04"
+version = "0.1.0"
+authors = ["Florian Reisecker <florian.reisecker@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+chrono = "0.4.6"
+regex = "1"
+lazy_static = "1.2.0"
