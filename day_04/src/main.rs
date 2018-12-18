@@ -15,6 +15,7 @@ fn main() {
     entries.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
 
     println!("The result of part one is {}.", part_one(&entries));
+    println!("The result of part two is {}.", part_two(&entries));
 }
 
 fn part_one(entries: &Vec<ShiftEntry>) -> u32 {
@@ -42,6 +43,27 @@ fn part_one(entries: &Vec<ShiftEntry>) -> u32 {
     }
 
     max_guard_id * max_minute_key
+}
+
+fn part_two(entries: &Vec<ShiftEntry>) -> u32 {
+    let guard_sleep = compute_sleep_minutes(entries);
+
+    let mut max_guard_id = 0;
+    let mut max_minutes_asleep = 0;
+    let mut max_minute_asleep = 0;
+
+    for (guard_id, value) in &guard_sleep {
+        for (minute, count) in value.iter() {
+            if *count > max_minutes_asleep {
+                max_minutes_asleep = *count;
+                max_guard_id = *guard_id;
+                max_minute_asleep = *minute;
+            }
+        }
+    }
+
+    println!("{}:{}", max_guard_id, max_minute_asleep);
+    max_guard_id * max_minute_asleep
 }
 
 #[derive(Debug)]
