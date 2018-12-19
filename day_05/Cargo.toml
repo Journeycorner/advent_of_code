@@ -5,3 +5,4 @@ authors = ["Florian Reisecker <florian.reisecker@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+rayon = "1.0.3"
