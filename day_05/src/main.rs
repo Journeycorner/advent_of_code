@@ -1,28 +1,36 @@
 use rayon::prelude::*;
 use std::fs;
+use std::thread;
+use std::time::Instant;
 
 fn main() {
+    let now = Instant::now();
     let input = fs::read_to_string("input.txt").unwrap();
-    part_one(&input);
-    part_two(&input);
-}
+    let input_two = input.clone();
 
-fn part_one(input: &str) {
-    println!("The solution of part 1 is {}", react_recursively(&input));
-}
+    let part_one = thread::spawn(move || {
+        println!("The solution of part 1 is {}", react_recursively(&input));
+    });
 
-fn part_two(input: &str) {
-    let min_length = "abcdefghijklmnopqrstuvwxyz"
-        .par_chars()
-        .map(|remove_letter| {
-            let without_letter = input
-                .replace(remove_letter, "")
-                .replace(remove_letter.to_ascii_uppercase(), "");
-            react_recursively(&without_letter)
-        })
-        .min()
-        .unwrap();
-    println!("The solution of part 2 is {}", min_length);
+    let part_two = thread::spawn(move || {
+        let min_length = "abcdefghijklmnopqrstuvwxyz"
+            .par_chars()
+            .map(|remove_letter| {
+                react_recursively(
+                    &input_two
+                        .replace(remove_letter, "")
+                        .replace(remove_letter.to_ascii_uppercase(), ""),
+                )
+            })
+            .min()
+            .unwrap();
+        println!("The solution of part 2 is {}", min_length);
+    });
+
+    let _ = part_one.join();
+    let _ = part_two.join();
+
+    println!("{:#?}", now.elapsed());
 }
 
 fn react_recursively(input: &str) -> usize {
