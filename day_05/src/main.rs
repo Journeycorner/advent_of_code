@@ -1,4 +1,5 @@
 use rayon::prelude::*;
+use regex::Regex;
 use std::fs;
 use std::thread;
 use std::time::Instant;
@@ -16,12 +17,15 @@ fn main() {
         let min_length = "abcdefghijklmnopqrstuvwxyz"
             .par_chars()
             .map(|remove_letter| {
-                react_recursively(
-                    &input_two
-                        .replace(remove_letter, "")
-                        .replace(remove_letter.to_ascii_uppercase(), ""),
-                )
+                Regex::new(&format!(
+                    "[{}{}]",
+                    remove_letter,
+                    remove_letter.to_ascii_uppercase()
+                ))
+                .unwrap()
+                .replace_all(&input_two, "")
             })
+            .map(|cleansed| react_recursively(&cleansed))
             .min()
             .unwrap();
         println!("The solution of part 2 is {}", min_length);
@@ -34,36 +38,29 @@ fn main() {
 }
 
 fn react_recursively(input: &str) -> usize {
-    let mut changes = false;
-    let mut iterator = input.chars().peekable();
-    let mut output = String::with_capacity(input.len());
-    loop {
-        if let Some(current) = iterator.next() {
-            if let Some(next) = iterator.peek() {
-                if !reaction(&current, next) {
-                    output.push(current);
-                } else {
-                    // skip both current and next item
-                    iterator.next();
-                    changes = true;
-                }
-            } else if changes {
-                output.push(current);
-                return react_recursively(&output);
-            } else {
-                output.push(current);
-                break;
-            }
+    let mut q = Vec::new();
+
+    for c in input.bytes() {
+        if q.is_empty() {
+            q.push(c);
         } else {
-            break;
+            let last = q.last().unwrap();
+
+            if reacts(*last, c) {
+                q.pop();
+            } else {
+                q.push(c);
+            }
         }
     }
-    output.len()
+
+    q.len()
 }
 
-fn reaction(a: &char, b: &char) -> bool {
-    if *a != *b && a.eq_ignore_ascii_case(b) {
-        return true;
+fn reacts(b1: u8, b2: u8) -> bool {
+    if b1 < b2 {
+        b2 - b1 == 32
+    } else {
+        b1 - b2 == 32
     }
-    false
 }
